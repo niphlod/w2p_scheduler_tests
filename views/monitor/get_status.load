@@ -1,0 +1,29 @@
+Status at {{=request.now}}
+<h6>scheduler_worker</h6>
+{{=SQLTABLE(swstatus, _class="table table-condensed", headers="labels")}}
+<h6>scheduler_task</h6>
+{{for task in ststatus:}}
+{{fields = [a for a in db.scheduler_task.fields]}}
+<div class="row">
+    <div class="span3">
+        <dl class="dl-horizontal">
+            {{for a in range(10):}}
+            {{k = fields.pop(0)}}
+            <dt>{{=db.scheduler_task[k].label}}</dt>
+            <dd>{{=task[k]}}</dd>
+            {{pass}}
+        </dl>
+    </div>
+    <div class="span3">
+        <dl class="dl-horizontal">
+            {{while len(fields)>0:}}
+            {{k = fields.pop(0)}}
+            <dt>{{=db.scheduler_task[k].label}}</dt>
+            <dd>{{=task[k]}}</dd>
+            {{pass}}
+        </dl>
+    </div>
+</div>
+{{pass}}
+<h6>scheduler_run</h6>
+{{=SQLTABLE(srstatus, _class="table table-condensed", headers="labels")}}

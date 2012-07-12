@@ -1,0 +1,24 @@
+{{extend 'layout.html'}}
+
+
+<div id="workers" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.workers)}}
+    </div>
+</div>
+<hr />
+
+<div id="tasks" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.tasks)}}
+    </div>
+</div>
+<hr />
+
+
+<script type="text/javascript">
+    $(function() {
+        $('pre').addClass("prettyprint");
+        prettyPrint();
+    })
+</script>

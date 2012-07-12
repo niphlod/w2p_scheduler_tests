@@ -1,0 +1,201 @@
+{{extend 'layout.html'}}
+
+<div id="intro" class="row">
+    <div class="span12">
+        {{=MARKMIN(docs.intro)}}
+    </div>
+</div>
+<hr />
+
+<div id="worker_1" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.one_time)}}
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>
+            {{=A('1. Clear All', _class="btn clear_all", _href=URL('manage', 'clear_all'), _id="worker_1_clear")}}
+            {{=A('2. Start Monitoring', _class="btn monitoring disabled", _href=URL('monitor', 'get_status.load'), _id="worker_1_status")}}
+            {{=A('3. Queue Task', _class="btn primary autoremove disabled", _href=URL('manage', 'worker1'), _id="worker_1_queue")}}
+            {{=A('4. Stop Monitoring', _class="btn", _onclick="$('#worker_1_status').addClass('stopped');return false;")}}
+            {{=A('5. Verify', _class="btn", callback=URL('verify', 'worker1'), target="worker_1_verify")}}
+        <p>
+        <div id="worker_1_status_container"></div>
+        <div id="worker_1_verify"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {{=MARKMIN(comments.one_time)}}
+    </div>
+</div>
+<hr />
+
+<div id="worker_2" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.repeats)}}
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>
+            {{=A('1. Clear All', _class="btn clear_all", _href=URL('manage', 'clear_all'), _id="worker_2_clear")}}
+            {{=A('2. Start Monitoring', _class="btn monitoring disabled", _href=URL('monitor', 'get_status.load'), _id="worker_2_status")}}
+            {{=A('3. Queue Task', _class="btn primary autoremove disabled", _href=URL('manage', 'worker2'), _id="worker_2_queue")}}
+            {{=A('4. Stop Monitoring', _class="btn", _onclick="$('#worker_2_status').addClass('stopped');return false;")}}
+            {{=A('5. Verify', _class="btn", callback=URL('verify', 'worker2'), target="worker_2_verify")}}
+        <p>
+        <div id="worker_2_status_container"></div>
+        <div id="worker_2_verify"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {{=MARKMIN(comments.repeats)}}
+    </div>
+</div>
+<hr />
+
+<div id="worker_3" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.repeats_failed)}}
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>
+            {{=A('1. Clear All', _class="btn clear_all", _href=URL('manage', 'clear_all'), _id="worker_3_clear")}}
+            {{=A('2. Start Monitoring', _class="btn monitoring disabled", _href=URL('monitor', 'get_status.load'), _id="worker_3_status")}}
+            {{=A('3. Queue Task', _class="btn primary autoremove disabled", _href=URL('manage', 'worker3'), _id="worker_3_queue")}}
+            {{=A('4. Stop Monitoring', _class="btn", _onclick="$('#worker_3_status').addClass('stopped');return false;")}}
+            {{=A('5. Verify', _class="btn", callback=URL('verify', 'worker3'), target="worker_3_verify")}}
+        <p>
+        <div id="worker_3_status_container"></div>
+        <div id="worker_3_verify"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {{=MARKMIN(comments.repeats_failed)}}
+    </div>
+</div>
+<hr />
+
+
+<div id="worker_4" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.expire)}}
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>
+            {{=A('1. Clear All', _class="btn clear_all", _href=URL('manage', 'clear_all'), _id="worker_4_clear")}}
+            {{=A('2. Start Monitoring', _class="btn monitoring disabled", _href=URL('monitor', 'get_status.load'), _id="worker_4_status")}}
+            {{=A('3. Queue Task', _class="btn primary autoremove disabled", _href=URL('manage', 'worker4'), _id="worker_4_queue")}}
+            {{=A('4. Stop Monitoring', _class="btn", _onclick="$('#worker_4_status').addClass('stopped');return false;")}}
+            {{=A('5. Verify', _class="btn", callback=URL('verify', 'worker4'), target="worker_4_verify")}}
+        <p>
+        <div id="worker_4_status_container"></div>
+        <div id="worker_4_verify"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {{=MARKMIN(comments.expire)}}
+    </div>
+</div>
+<hr />
+
+
+<div id="worker_5" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.priority)}}
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>
+            {{=A('1. Clear All', _class="btn clear_all", _href=URL('manage', 'clear_all'), _id="worker_5_clear")}}
+            {{=A('2. Start Monitoring', _class="btn monitoring disabled", _href=URL('monitor', 'get_status.load'), _id="worker_5_status")}}
+            {{=A('3. Queue Task', _class="btn primary autoremove disabled", _href=URL('manage', 'worker5'), _id="worker_5_queue")}}
+            {{=A('4. Stop Monitoring', _class="btn", _onclick="$('#worker_5_status').addClass('stopped');return false;")}}
+            {{=A('5. Verify', _class="btn", callback=URL('verify', 'worker5'), target="worker_5_verify")}}
+        <p>
+        <div id="worker_5_status_container"></div>
+        <div id="worker_5_verify"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {{=MARKMIN(comments.priority)}}
+    </div>
+</div>
+<hr />
+
+<div id="worker_6" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.returns_null)}}
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>
+            {{=A('1. Clear All', _class="btn clear_all", _href=URL('manage', 'clear_all'), _id="worker_6_clear")}}
+            {{=A('2. Start Monitoring', _class="btn monitoring disabled", _href=URL('monitor', 'get_status.load'), _id="worker_6_status")}}
+            {{=A('3. Queue Task', _class="btn primary autoremove disabled", _href=URL('manage', 'worker6'), _id="worker_6_queue")}}
+            {{=A('4. Stop Monitoring', _class="btn", _onclick="$('#worker_6_status').addClass('stopped');return false;")}}
+            {{=A('5. Verify', _class="btn", callback=URL('verify', 'worker6'), target="worker_6_verify")}}
+        <p>
+        <div id="worker_6_status_container"></div>
+        <div id="worker_6_verify"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {{=MARKMIN(comments.returns_null)}}
+    </div>
+</div>
+<hr />
+
+
+<script type="text/javascript">
+    $(function() {
+        $('pre').addClass("prettyprint");
+        prettyPrint();
+        $('a.autoremove').on('click', function(e) {
+            e.preventDefault();
+            if ($(this).hasClass('disabled')) return;
+            var url = $(this).attr('href');
+            web2py_ajax_page('GET', url,[],'aaa');
+        })
+        $('a.clear_all').on('click', function(e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            web2py_ajax_page('GET', url,[],$(this).attr('id') + 'a');
+        })
+        $('a.monitoring').on('click', function(e) {
+            e.preventDefault();
+            var el = $(this);
+            $('a.monitoring').addClass("stopped");
+            el.removeClass("stopped");
+            if (el.hasClass('disabled')) return;
+            el.addClass('disabled');
+            $.PeriodicalUpdater(el.attr('href'), {
+                    'beforeSend':function(xhr) {
+                        xhr.setRequestHeader('web2py-component-location', document.location);
+                        xhr.setRequestHeader('web2py-component-element', el.attr('id') );
+                        },
+                    },
+                    function(remoteData, success, xhr, handle) {
+                            var command = xhr.getResponseHeader('web2py-component-command');
+                            if (command == 'stop') handle.stop();
+                            if (el.hasClass('stopped')) {handle.stop();el.removeClass('stopped disabled')};
+                            $("#" + el.attr('id') + '_container').html(remoteData);
+                            if (command != 'stop') eval(decodeURIComponent(escape(command)));
+                        }
+            );
+        })
+    })
+</script>
