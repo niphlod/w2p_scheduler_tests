@@ -139,7 +139,7 @@ st.insert(task_name='one_time_only', function_name='demo4')
 Instructions:
  - Push "Clear All"
  - Push "Start Monitoring"
- - If not yet, start a worker in another shell ``web2py.py -K scheduler_tests``
+ - If not yet, start a worker in another shell ``web2py.py -K w2p_scheduler_tests``
  - Wait a few seconds, a worker shows up
  - Push "Queue Task"
  - Wait a few seconds
@@ -178,7 +178,7 @@ st.insert(task_name="repeats", function_name='demo1', args=dumps(['a','b']), var
 Instructions (same as before):
  - Push "Clear All"
  - Push "Start Monitoring"
- - If not yet, start a worker in another shell ``web2py.py -K scheduler_tests``
+ - If not yet, start a worker in another shell ``web2py.py -K w2p_scheduler_tests``
  - Wait a few seconds, a worker shows up
  - Push "Queue Task"
  - Wait a few seconds
@@ -277,7 +277,7 @@ again, it will start to process tasks.
 Instructions:
  - Push "Clear All"
  - Push "Start Monitoring"
- - If not yet, start a worker in another shell ``web2py.py -K scheduler_tests``
+ - If not yet, start a worker in another shell ``web2py.py -K w2p_scheduler_tests``
  - Wait a few seconds, a worker shows up
  - Push "Disable worker"
  - Wait a few seconds
@@ -293,7 +293,7 @@ A worker with the status **TERMINATE** will die only if it's not processing any 
 Instructions:
  - Push "Clear All"
  - Push "Start Monitoring"
- - If not yet, start a worker in another shell ``web2py.py -K scheduler_tests``
+ - If not yet, start a worker in another shell ``web2py.py -K w2p_scheduler_tests``
  - Wait a few seconds, a worker shows up
  - Push "Queue task"
  - Wait until the task is reported as **RUNNING**
@@ -307,7 +307,7 @@ A worker with the status **KILL** will die also if it's processing a task.
 Instructions:
  - Push "Clear All"
  - Push "Start Monitoring"
- - If not yet, start a worker in another shell ``web2py.py -K scheduler_tests``
+ - If not yet, start a worker in another shell ``web2py.py -K w2p_scheduler_tests``
  - Wait a few seconds, a worker shows up
  - Push "Queue task"
  - Wait until the task is reported as **RUNNING**
@@ -321,7 +321,7 @@ def how_it_works():
     docs = Storage()
     docs.workers = """
 ### Scheduler
-Workers's fine management is hard. This module tries not to leave behind any platform
+Worker fine management is hard. This module tries not to leave behind any platform
 (Mac, Win, Linux) . Right now workers can be started with an "embedded" mode:
 
 ``web2py.py -K appname``
@@ -414,7 +414,7 @@ All tasks follow a lifecycle
 
 Let's go with order. By default, when you send a task to the scheduler, you'll want
 that to be executed. It's in **QUEUED** status.
-If you need it to be executed later, use the ``stop_time`` parameter (default = now).
+If you need it to be executed later, use the ``start_time`` parameter (default = now).
 If for some reason you need to be sure that the task don't
 get executed after a certain point in time (maybe a request to a webservice
 that shuts down at 1AM, a mail that needs to be sent not after the working hours,
