@@ -208,6 +208,7 @@ So, we got a task executed twice automatically, yeeeeahh!
 
     docs.repeats_failed = """
 #### Repeats Failed
+
 We want to run a function once, but allowing the function to raise an exception once.
 That is, you want the function to "retry" an attempt if the first one fails.
 Remember, repeats_failed==1 will let a task fail only once, that is the default behaviour.
@@ -221,6 +222,7 @@ st.insert(task_name='repeats_failed', function_name='demo2', repeats_failed=2, p
     """
     docs.expire = """
 #### Expired status
+
 To better understand the use of ``stop_time`` parameter we're going to schedule
 a function with stop_time < now. Task will have the status **QUEUED**, but as soon
 as a worker see it, it will set its status to **EXPIRED**.
@@ -231,6 +233,7 @@ st.insert(task_name='expire', function_name='demo4', stop_time=stop_time)
     """
     docs.priority = """
 #### Priority
+
 Also if there is no explicit priority management for tasks you'd like to execute
 a task putting that "on top of the list", for one-time-only tasks you can force the
 ``next_run_time`` parameter to something very far in the past (according to your preferences).
@@ -245,6 +248,7 @@ st.insert(task_name='priority2', function_name='demo1', args=dumps(['scheduled_s
     """
     docs.returns_null = """
 #### Tasks with no return value
+
 Sometimes you want a function to run, but you're not interested in the return value
 (because you save it in another table, or you simply don't mind the results).
 Well, there is no reason to have a record into the scheduler_run table!
@@ -271,6 +275,7 @@ def workers():
 
     docs.disabled = """
 #### Disable a worker
+
 A disabled worker won't pick any tasks at all, but as soon as its status is set to **ACTIVE**
 again, it will start to process tasks.
 
@@ -288,6 +293,7 @@ Instructions:
     """
     docs.terminate = """
 #### Terminate a worker
+
 A worker with the status **TERMINATE** will die only if it's not processing any task.
 
 Instructions:
@@ -302,6 +308,7 @@ Instructions:
     """
     docs.kill = """
 #### Kill a worker
+
 A worker with the status **KILL** will die also if it's processing a task.
 
 Instructions:
@@ -321,6 +328,7 @@ def how_it_works():
     docs = Storage()
     docs.workers = """
 ### Scheduler
+
 Worker fine management is hard. This module tries not to leave behind any platform
 (Mac, Win, Linux) . Right now workers can be started with an "embedded" mode:
 
