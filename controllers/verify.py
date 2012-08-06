@@ -40,7 +40,7 @@ def worker2():
 
 def worker3():
     if 1:
-        task = db(st.task_name=='repeats_failed').select().first()
+        task = db(st.task_name=='retry_failed').select().first()
         task_run = db(sr.scheduler_task == task.id).select()
         res = [
             ("task status failed", task.status == 'FAILED'),

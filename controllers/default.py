@@ -50,6 +50,7 @@ def tasks():
     comments = Storage()
     docs.intro = """
 #### Intro
+
 So, here we are trying to learn (and test) web2py's scheduler.
 
 Actually you have to download latest trunk scheduler to make it work (backup current gluon/scheduler.py and replace with the one on trunk).
@@ -207,17 +208,15 @@ So, we got a task executed twice automatically, yeeeeahh!
     """
 
     docs.repeats_failed = """
-#### Repeats Failed
+#### Retry Failed
 
 We want to run a function once, but allowing the function to raise an exception once.
 That is, you want the function to "retry" an attempt if the first one fails.
-Remember, repeats_failed==1 will let a task fail only once, that is the default behaviour.
-If you want the task to repeat once AFTER it is failed, you need to specify repeats_failed=2.
-We'll enqueue demo2, that we know if will fail in bot runs, just to check if everything
+We'll enqueue demo2, that we know if will fail in both runs, just to check if everything
 works as expected (i.e. it gets re-queued only one time after the first FAILED run)
 
 ``
-st.insert(task_name='repeats_failed', function_name='demo2', repeats_failed=2, period=30)
+st.insert(task_name='retry_failed', function_name='demo2', retry_failed=1, period=30)
 ``
     """
     docs.expire = """
@@ -238,7 +237,7 @@ Also if there is no explicit priority management for tasks you'd like to execute
 a task putting that "on top of the list", for one-time-only tasks you can force the
 ``next_run_time`` parameter to something very far in the past (according to your preferences).
 A task gets **ASSIGNED** to a worker, and the worker picks up (and execute) first tasks with
-minimum ``next_run_time``.
+the minimum ``next_run_time`` in the set.
 
 ``
 next_run_time = request.now - datetime.timedelta(seconds=60)
@@ -367,7 +366,8 @@ Scheduler(
     group_names=None,
     heartbeat=HEARTBEAT,
     max_empty_runs=0,
-    discard_results=False
+    discard_results=False,
+    utc_time=False
     )``:python
 Let's see them in order:
 
@@ -407,6 +407,11 @@ A loop is when a worker searches for tasks, every 3 seconds (or the set ``heartb
 ``discard_results`` is False by default. If set to True, no scheduler_run records will be created.
 NB: scheduler_run records will be created as before for **FAILED**, **TIMEOUT** and
 **STOPPED** tasks's statuses.
+
+``utc_time`` is False by default. If you need to coordinate with workers living in different
+timezones, or don't have problems with solar/DST times, supplying datetimes from different countries,
+etc, you can set this to True. The scheduler will honour the UTC time and work leaving the local
+time aside. Caveat: you need to schedule tasks with UTC times (for start_time, stop_time, and so on.)
     """
     docs.tasks = """
 ### Tasks lifecycle
@@ -445,14 +450,14 @@ from the START time of the first round to the START time of the next cycle)
 
 Another nice addition, you can set how many times the function can raise an exception (i.e.
 requesting data from a sloooow webservice) and be queued again instead of stopping in **FAILED**
-status with the parameter ``repeats_failed`` (default = 1, 0 = unlimited).
+status with the parameter ``retry_failed`` (default = 0, -1 = unlimited).
 
-[[task repeats http://yuml.me/e2f1c1be.jpg center]]
+[[task repeats http://yuml.me/cdd6ebe9.jpg center]]
 
 Summary: you have
  - ``period`` and ``repeats`` to get an automatically rescheduled function
  - ``timeout`` to be sure that a function doesn't exceed a certain amount of time
- - ``repeats_failed`` to control how many times the task can "fail"
+ - ``retry_failed`` to control how many times the task can "fail"
  - ``start_time`` and ``stop_time`` to schedule a function in a restricted timeframe
     """
     return dict(docs=docs)

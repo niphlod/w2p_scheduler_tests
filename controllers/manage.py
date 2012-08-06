@@ -32,7 +32,7 @@ def worker2():
     response.flash = "Function demo1 scheduled"
 
 def worker3():
-    st.insert(task_name='repeats_failed', function_name='demo2', repeats_failed=2, period=30)
+    st.insert(task_name='retry_failed', function_name='demo2', retry_failed=1, period=30)
     response.js = "$('#worker_3_queue').addClass('disabled');"
     response.flash = "Function demo2 scheduled"
 
