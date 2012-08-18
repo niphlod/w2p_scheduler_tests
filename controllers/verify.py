@@ -39,7 +39,7 @@ def worker2():
     return dict(res=res)
 
 def worker3():
-    if 1:
+    try:
         task = db(st.task_name=='retry_failed').select().first()
         task_run = db(sr.scheduler_task == task.id).select()
         res = [
@@ -50,14 +50,14 @@ def worker3():
             ("scheduler_run records are FAILED" , (task_run[0].status == task_run[1].status == 'FAILED')),
             ("period is respected", (task_run[1].start_time > task_run[0].start_time + datetime.timedelta(seconds=task.period)))
         ]
-    else:
+    except:
         res = []
     response.view = 'default/verify.load'
     return dict(res=res)
 
 
 def worker4():
-    if 1:
+    try:
         task = db(st.task_name=='expire').select().first()
         task_run = db(sr.scheduler_task == task.id).select()
         res = [
@@ -65,13 +65,13 @@ def worker4():
             ("task times_run is 0" , task.times_run == 0),
             ("task didn't run at all" , len(task_run) == 0)
         ]
-    else:
+    except:
         res = []
     response.view = 'default/verify.load'
     return dict(res=res)
 
 def worker5():
-    if 1:
+    try:
         task1 = db(st.task_name=='priority1').select().first()
         task2 = db(st.task_name=='priority2').select().first()
         task_run1 = db(sr.scheduler_task == task1.id).select()
@@ -80,13 +80,13 @@ def worker5():
             ("tasks status completed", task1.status == task2.status == 'COMPLETED'),
             ("priority2 was executed before priority1" , task_run1[0].id > task_run2[0].id)
         ]
-    else:
+    except:
         res = []
     response.view = 'default/verify.load'
     return dict(res=res)
 
 def worker6():
-    if 1:
+    try:
         task1 = db(st.task_name=='no_returns1').select().first()
         task2 = db(st.task_name=='no_returns2').select().first()
         task_run1 = db(sr.scheduler_task == task1.id).select()
@@ -97,7 +97,36 @@ def worker6():
             ("no_returns1 doesn't have a scheduler_run record", len(task_run1) == 0),
             ("no_returns2 has a scheduler_run record FAILED", (len(task_run2) == 1 and task_run2[0].status == 'FAILED')),
         ]
-    else:
+    except:
+        res = []
+    response.view = 'default/verify.load'
+    return dict(res=res)
+
+def worker10():
+    try:
+        task1 = db(st.task_name=='timeouts1').select().first()
+        task2 = db(st.task_name=='timeouts2').select().first()
+        task_run1 = db(sr.scheduler_task == task1.id).select()
+        task_run2 = db(sr.scheduler_task == task2.id).select()
+        res = [
+            ("tasks timeouts1 timeoutted", task1.status == 'TIMEOUT'),
+            ("tasks timeouts2 completed", task2.status == 'COMPLETED'),
+            ("task timeouts1 stop_time-start_time = ~5 seconds", (task_run1[0].stop_time - task_run1[0].start_time).seconds < 7)
+        ]
+    except:
+        res = []
+    response.view = 'default/verify.load'
+    return dict(res=res)
+
+def worker11():
+    try:
+        task1 = db(st.task_name=='percentages').select().first()
+        task_run1 = db(sr.scheduler_task == task1.id).select()
+        res = [
+            ("tasks percentages completed", task1.status == 'COMPLETED'),
+            ("output contains only 100%", task_run1[0].output.strip() == "100%")
+        ]
+    except:
         res = []
     response.view = 'default/verify.load'
     return dict(res=res)

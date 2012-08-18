@@ -160,6 +160,57 @@
 <hr />
 
 
+<div id="worker_10" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.timeouts)}}
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>
+            {{=A('1. Clear All', _class="btn clear_all", _href=URL('manage', 'clear_all'), _id="worker_10_clear")}}
+            {{=A('2. Start Monitoring', _class="btn monitoring disabled", _href=URL('monitor', 'get_status.load'), _id="worker_10_status")}}
+            {{=A('3. Queue Task', _class="btn primary autoremove disabled", _href=URL('manage', 'worker10'), _id="worker_10_queue")}}
+            {{=A('4. Stop Monitoring', _class="btn", _onclick="$('#worker_10_status').addClass('stopped');return false;")}}
+            {{=A('5. Verify', _class="btn", callback=URL('verify', 'worker10'), target="worker_10_verify")}}
+        <p>
+        <div id="worker_10_status_container"></div>
+        <div id="worker_10_verify"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {{=MARKMIN(comments.timeouts)}}
+    </div>
+</div>
+<hr />
+
+<div id="worker_11" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.percentages)}}
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>
+            {{=A('1. Clear All', _class="btn clear_all", _href=URL('manage', 'clear_all'), _id="worker_11_clear")}}
+            {{=A('2. Start Monitoring', _class="btn monitoring disabled", _href=URL('monitor', 'get_status.load'), _id="worker_11_status")}}
+            {{=A('3. Queue Task', _class="btn primary autoremove disabled", _href=URL('manage', 'worker11'), _id="worker_11_queue")}}
+            {{=A('4. Stop Monitoring', _class="btn", _onclick="$('#worker_11_status').addClass('stopped');return false;")}}
+            {{=A('5. Verify', _class="btn", callback=URL('verify', 'worker11'), target="worker_11_verify")}}
+        <p>
+        <div id="worker_11_status_container"></div>
+        <div id="worker_11_verify"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {{=MARKMIN(comments.percentages)}}
+    </div>
+</div>
+<hr />
+
+
 <script type="text/javascript">
     $(function() {
         $('pre').addClass("prettyprint");

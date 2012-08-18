@@ -24,6 +24,13 @@ def demo5():
     print "I'm printing something"
     rtn = dict(a=1, b=2)
 
+def demo6():
+    time.sleep(5)
+    print '50%'
+    time.sleep(5)
+    print '!clear!100%'
+    return 1
+
 
 scheduler = Scheduler(db)
 ##or, alternatively :

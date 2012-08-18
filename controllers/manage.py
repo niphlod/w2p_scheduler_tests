@@ -27,12 +27,12 @@ def worker1():
     response.flash = "Function demo4 scheduled"
 
 def worker2():
-    st.insert(task_name='repeats', function_name='demo1', args=dumps(['a','b']), vars=dumps(dict(c=1, d=2)), repeats=2, period=30)
+    st.insert(task_name='repeats', function_name='demo1', args=dumps(['a','b']), vars=dumps(dict(c=1, d=2)), repeat=2, period=30)
     response.js = "$('#worker_2_queue').addClass('disabled');"
     response.flash = "Function demo1 scheduled"
 
 def worker3():
-    st.insert(task_name='retry_failed', function_name='demo2', retry_failed=1, period=30)
+    st.insert(task_name='repeats_failed', function_name='demo2', retry_failed=1, period=10)
     response.js = "$('#worker_3_queue').addClass('disabled');"
     response.flash = "Function demo2 scheduled"
 
@@ -69,6 +69,17 @@ def worker9():
     st.insert(task_name='one_time_only', function_name='demo4')
     response.js = "$('#worker_9_queue').addClass('disabled');"
     response.flash = "Function demo4 scheduled"
+
+def worker10():
+    st.insert(task_name='timeouts1', function_name='demo4', timeout=5)
+    st.insert(task_name='timeouts2', function_name='demo4')
+    response.js = "$('#worker_10_queue').addClass('disabled');"
+    response.flash = "Functions demo4 scheduled"
+
+def worker11():
+    st.insert(task_name='percentages', function_name='demo6', sync_output=2)
+    response.js = "$('#worker_11_queue').addClass('disabled');"
+    response.flash = "Function demo6 scheduled"
 
 def enable_workers():
     db(sw.id>0).update(status='ACTIVE')

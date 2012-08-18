@@ -22,6 +22,12 @@ def index():
 
     return dict(steps=steps)
 
+def uff():
+    from gluon.serializers import json
+    db.scheduler_task.insert(function_name='demo2', timeout=3)
+    #for a in range(200):
+        #db.scheduler_task.insert(function_name='demo4')
+    #    db.scheduler_task.insert(function_name='demo1', args=json((1,'b')))
 
 def download():
     """
@@ -50,7 +56,6 @@ def tasks():
     comments = Storage()
     docs.intro = """
 #### Intro
-
 So, here we are trying to learn (and test) web2py's scheduler.
 
 Actually you have to download latest trunk scheduler to make it work (backup current gluon/scheduler.py and replace with the one on trunk).
@@ -99,6 +104,13 @@ def demo5():
     print "I'm printing something"
     rtn = dict(a=1, b=2)
 
+def demo6():
+    time.sleep(5)
+    print '50%'
+    time.sleep(5)
+    print '!clear!100%'
+    return 1
+
 
 scheduler = Scheduler(db)
 ##or, alternatively :
@@ -119,6 +131,7 @@ So, we have:
  -  demo3 : sleeps for 15 seconds, tries to print something, throws exception
  -  demo4 : sleeps for 15 seconds, print something, returns a dictionary
  -  demo5 : sleeps for 15 seconds, print nothing, doesn't return anything
+ -  demo6 : sleeps for 5 seconds, print something, sleeps 5 seconds, print something, return 1
 
 The scheduler istantiated with the db only. Optionally, you can pass a dictionary
 containing a mapping between strings and functions.
@@ -208,15 +221,17 @@ So, we got a task executed twice automatically, yeeeeahh!
     """
 
     docs.repeats_failed = """
-#### Retry Failed
+#### Repeats Failed
 
 We want to run a function once, but allowing the function to raise an exception once.
 That is, you want the function to "retry" an attempt if the first one fails.
+Remember, repeats_failed==1 will let a task fail only once, that is the default behaviour.
+If you want the task to repeat once AFTER it is failed, you need to specify repeats_failed=2.
 We'll enqueue demo2, that we know if will fail in both runs, just to check if everything
 works as expected (i.e. it gets re-queued only one time after the first FAILED run)
 
 ``
-st.insert(task_name='retry_failed', function_name='demo2', retry_failed=1, period=30)
+st.insert(task_name='repeats_failed', function_name='demo2', repeats_failed=2, period=30)
 ``
     """
     docs.expire = """
@@ -237,7 +252,7 @@ Also if there is no explicit priority management for tasks you'd like to execute
 a task putting that "on top of the list", for one-time-only tasks you can force the
 ``next_run_time`` parameter to something very far in the past (according to your preferences).
 A task gets **ASSIGNED** to a worker, and the worker picks up (and execute) first tasks with
-the minimum ``next_run_time`` in the set.
+minimum ``next_run_time``.
 
 ``
 next_run_time = request.now - datetime.timedelta(seconds=60)
@@ -262,6 +277,38 @@ st.insert(task_name='no_returns1', function_name='demo5')
 st.insert(task_name='no_returns2', function_name='demo3')
 ``
     """
+    docs.timeouts = """
+#### Tasks that will be terminated because they run too long
+
+By default, the ``timeout`` parameter is set to 60 seconds. This means that if a
+task takes more than 60 seconds to return, it is terminated and its status becomes
+**TIMEOUT**.
+
+We'll queue the function demo4 with a ``timeout`` parameter of 5 seconds and then again the
+same function without timeout.
+``
+st.insert(task_name='timeouts1', function_name='demo4', timeout=5)
+st.insert(task_name='timeouts2', function_name='demo5')
+``
+
+
+    """
+    docs.percentages = """
+#### Reporting percentages
+
+A special "word" encountered in the print statements of your functions clear all
+the previous output. That word is ``!clear!``.
+This, coupled with the ``sync_output`` parameter, allows to report percentages
+a breeze. The function ``demo6`` sleeps for 5 seconds, outputs ``50%``.
+Then, it sleeps other 5 seconds and outputs ``100%``. Note that the output in the
+scheduler_run table is synced every 2 seconds and that the second print statement
+that contains ``!clear!100%`` gets the ``50%`` output cleared and replaced
+by ``100%`` only.
+
+``
+st.insert(task_name='percentages', function_name='demo6', sync_output=2)
+``
+"""
 
     return dict(docs=docs, comments=comments)
 
@@ -366,8 +413,7 @@ Scheduler(
     group_names=None,
     heartbeat=HEARTBEAT,
     max_empty_runs=0,
-    discard_results=False,
-    utc_time=False
+    discard_results=False
     )``:python
 Let's see them in order:
 
@@ -407,11 +453,6 @@ A loop is when a worker searches for tasks, every 3 seconds (or the set ``heartb
 ``discard_results`` is False by default. If set to True, no scheduler_run records will be created.
 NB: scheduler_run records will be created as before for **FAILED**, **TIMEOUT** and
 **STOPPED** tasks's statuses.
-
-``utc_time`` is False by default. If you need to coordinate with workers living in different
-timezones, or don't have problems with solar/DST times, supplying datetimes from different countries,
-etc, you can set this to True. The scheduler will honour the UTC time and work leaving the local
-time aside. Caveat: you need to schedule tasks with UTC times (for start_time, stop_time, and so on.)
     """
     docs.tasks = """
 ### Tasks lifecycle
@@ -450,14 +491,14 @@ from the START time of the first round to the START time of the next cycle)
 
 Another nice addition, you can set how many times the function can raise an exception (i.e.
 requesting data from a sloooow webservice) and be queued again instead of stopping in **FAILED**
-status with the parameter ``retry_failed`` (default = 0, -1 = unlimited).
+status with the parameter ``repeats_failed`` (default = 1, 0 = unlimited).
 
-[[task repeats http://yuml.me/cdd6ebe9.jpg center]]
+[[task repeats http://yuml.me/e2f1c1be.jpg center]]
 
 Summary: you have
  - ``period`` and ``repeats`` to get an automatically rescheduled function
  - ``timeout`` to be sure that a function doesn't exceed a certain amount of time
- - ``retry_failed`` to control how many times the task can "fail"
+ - ``repeats_failed`` to control how many times the task can "fail"
  - ``start_time`` and ``stop_time`` to schedule a function in a restricted timeframe
     """
     return dict(docs=docs)

@@ -31,7 +31,9 @@ response.menu = [
         ('Repeats Failed', False, URL('default', 'tasks', anchor='worker_3')),
         ('Expired status', False, URL('default', 'tasks', anchor='worker_4')),
         ('Priority', False, URL('default', 'tasks', anchor='worker_5')),
-        ('Tasks with no return value', False, URL('default', 'tasks', anchor='worker_6'))
+        ('Tasks with no return value', False, URL('default', 'tasks', anchor='worker_6')),
+        ('Timeouts', False, URL('default', 'tasks', anchor='worker_10')),
+        ('Percentages', False, URL('default', 'tasks', anchor='worker_11'))
         ]),
     ('Workers', False, None, [
         ('Disable', False, URL('default', 'workers', anchor='worker_7')),
