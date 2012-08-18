@@ -27,12 +27,12 @@ def worker1():
     response.flash = "Function demo4 scheduled"
 
 def worker2():
-    st.insert(task_name='repeats', function_name='demo1', args=dumps(['a','b']), vars=dumps(dict(c=1, d=2)), repeat=2, period=30)
+    st.insert(task_name='repeats', function_name='demo1', args=dumps(['a','b']), vars=dumps(dict(c=1, d=2)), repeats=2, period=10)
     response.js = "$('#worker_2_queue').addClass('disabled');"
     response.flash = "Function demo1 scheduled"
 
 def worker3():
-    st.insert(task_name='repeats_failed', function_name='demo2', retry_failed=1, period=10)
+    st.insert(task_name='retry_failed', function_name='demo2', retry_failed=1, period=10)
     response.js = "$('#worker_3_queue').addClass('disabled');"
     response.flash = "Function demo2 scheduled"
 
