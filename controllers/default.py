@@ -131,8 +131,48 @@ containing a mapping between strings and functions.
 In the latter case, all functions are "assigned" to a string that is the function name,
 except for function demo5 that we "assigned" to 'foo'.
 
-All interactions with scheduler is done acting on the scheduler_* tables.
-    """
+All interactions with scheduler is done acting on the scheduler_* tables, or using its API
+
+#### Exposed Api
+
+##### Queue Task
+- ``scheduler.queue_task(function, pargs=[], pvars={}, **kwargs)`` : accepts a lot of arguments, to make your life easier....
+ -- ``function`` : required. This can be a string as ``'demo2'`` or directly the function, i.e. you can use ``scheduler.queue_task(demo2)``
+ -- ``pargs`` : p stands for "positional". pargs will accept your args as a list, without the need to jsonify them first.
+  ---  ``scheduler.queue_task(demo1, [1,2])`` 
+  ... does the exact same thing as 
+  ... ``st.validate_and_insert(function_name = 'demo1', args=dumps([1,2]))``
+  ... and in a lot less characters
+  ... **NB**: if you do ``scheduler.queue_task(demo1, [1,2], args=dumps([2,3]))`` , ``args`` will prevail and the task will be queued with **2,3**
+ -- ``pvars`` : as with ``pargs``, will accept your vars as a dict, without the need to jsonify them first.
+  --- ``scheduler.queue_task(demo1, [], {'a': 1, 'b' : 2})`` or ``scheduler.queue_task(demo1, pvars={'a': 1, 'b' : 2})``
+  ... does the exact same thing as 
+  ... ``st.validate_and_insert(function_name = 'demo1', vars=dumps({'a': 1, 'b' : 2}))``
+  ... **NB**:  if you do ``scheduler.queue_task(demo1, None, {'a': 1, 'b': 2}, vars=dumps({'a': 2, 'b' : 3}))`` , ``vars`` will prevail and the task will be queued with **{'a': 2, 'b' : 3}**
+ -- ``kwargs`` : all other scheduler_task columns can be passed as keywords arguments, e.g. :
+  ... ``
+       scheduler.queue_task(
+          demo1, [1,2], {a: 1, b : 2},
+          repeats = 0,
+          period = 180,
+       ....
+      )``:python
+
+The method returns the result of validate_and_insert, with the ``uuid`` of the task you queued (can be the one you passed or the auto-generated one).
+
+``<Row {'errors': {}, 'id': 1, 'uuid': '08e6433a-cf07-4cea-a4cb-01f16ae5f414'}>``
+ 
+If there are errors (e.g. you used ``period = 'a'``), you'll get the result of the validation, and id and uuid will be None
+
+``<Row {'errors': {'period': 'enter an integer greater than or equal to 0'}, 'id': None, 'uuid': None}>``
+##### Task status
+- ``task_status(self, ref, output=False)`` 
+ -- ``ref`` can be either:
+  --- an integer --> lookup will be done by scheduler_task.id
+  --- a string --> lookup will be done by scheduler_task.uuid
+  --- a query --> lookup as you wish (as in db.scheduler_task.task_name == 'test1')
+  --- **NB**: in the case of a query, only the last scheduler_run record will be fetched
+"""
 
     docs.one_time = """
 #### One time only
@@ -140,7 +180,7 @@ All interactions with scheduler is done acting on the scheduler_* tables.
 Okay, let's start with the tests....something simple: a function that needs to run one time only.
 
 ``
-st.insert(task_name='one_time_only', function_name='demo4')
+scheduler.queue_task(demo4, task_name='one_time_only')
 ``:python
 
 Instructions:
@@ -168,8 +208,8 @@ Please note that you can get a lot of data to inspect execution in this mode
  - task_name is useful for retrieving the results later ``db(sr.scheduler_task.id == st.id)(st.task_name == 'one_time_only')(st.status == 'COMPLETED').select(sr.result, sr.output)``:python
  - task gets a ``uuid`` by default
 ###### scheduler_run
- - ``result`` is in json format
- - ``output`` is the stdout, so you can watch your nice "print" statements
+ - ``run_result`` is in json format
+ - ``run_output`` is the stdout, so you can watch your nice "print" statements
  - ``start_time`` is when the task started
  - ``stop_time`` is when the task stopped
  - ``worker_name`` gets the worker name that processed the task
@@ -179,7 +219,7 @@ Please note that you can get a lot of data to inspect execution in this mode
 
 Let's say we want to run the demo1 function with some args and vars, 2 times.
 ``
-st.insert(task_name="repeats", function_name='demo1', args=dumps(['a','b']), vars=dumps(dict(c=1, d=2)), repeats=2, period=10)
+scheduler.queue_task(demo1, ['a','b'], dict(c=1, d=2), task_name="repeats", repeats=2, period=10)
 ``
 
 Instructions (same as before):
@@ -222,7 +262,7 @@ We'll enqueue demo2, that we know if will fail in both runs, just to check if ev
 works as expected (i.e. it gets re-queued only one time after the first FAILED run)
 
 ``
-st.insert(task_name='retry_failed', function_name='demo2', retry_failed=2, period=10)
+scheduler.queue_task(demo2, task_name='retry_failed', retry_failed=2, period=10)
 ``
     """
     docs.expire = """
@@ -233,7 +273,7 @@ a function with stop_time < now. Task will have the status **QUEUED**, but as so
 as a worker see it, it will set its status to **EXPIRED**.
 ``
 stop_time = request.now - datetime.timedelta(seconds=60)
-st.insert(task_name='expire', function_name='demo4', stop_time=stop_time)
+scheduler.queue_task(demo4, task_name='expire', stop_time=stop_time)
 ``
     """
     docs.priority = """
@@ -247,8 +287,8 @@ minimum ``next_run_time`` in the set.
 
 ``
 next_run_time = request.now - datetime.timedelta(seconds=60)
-st.insert(task_name='priority1', function_name='demo1', args=dumps(['scheduled_first']))
-st.insert(task_name='priority2', function_name='demo1', args=dumps(['scheduled_second']), next_run_time=next_run_time)
+scheduler.queue_task(demo1, ['scheduled_first'], task_name='priority1')
+scheduler.queue_task(demo1, ['scheduled_second'], task_name='priority2', next_run_time=next_run_time)
 ``
     """
     docs.returns_null = """
@@ -264,8 +304,8 @@ tell if a function is taking some time to be "executed", and because if task fai
 (timeouts or exceptions) the record is needed to see what went wrong.
 We'll queue 2 functions, both with no return values, demo3 that generates an exception
 ``
-st.insert(task_name='no_returns1', function_name='demo5')
-st.insert(task_name='no_returns2', function_name='demo3')
+scheduler.queue_task(demo5, task_name='no_returns1')
+scheduler.queue_task(demo3, task_name='no_returns2')
 ``
     """
     docs.timeouts = """
@@ -278,8 +318,8 @@ task takes more than 60 seconds to return, it is terminated and its status becom
 We'll queue the function demo4 with a ``timeout`` parameter of 5 seconds and then again the
 same function without timeout.
 ``
-st.insert(task_name='timeouts1', function_name='demo4', timeout=5)
-st.insert(task_name='timeouts2', function_name='demo5')
+scheduler.queue_task(demo4, task_name='timeouts1', timeout=5)
+scheduler.queue_task(demo4, task_name='timeouts2')
 ``
 
 
@@ -297,7 +337,7 @@ that contains ``!clear!100%`` gets the ``50%`` output cleared and replaced
 by ``100%`` only.
 
 ``
-st.insert(task_name='percentages', function_name='demo6', sync_output=2)
+scheduler.queue_task(demo6, task_name='percentages', sync_output=2)
 ``
 """
 

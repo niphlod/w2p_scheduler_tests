@@ -124,7 +124,7 @@ def worker11():
         task_run1 = db(sr.scheduler_task == task1.id).select()
         res = [
             ("tasks percentages completed", task1.status == 'COMPLETED'),
-            ("output contains only 100%", task_run1[0].output.strip() == "100%")
+            ("output contains only 100%", task_run1[0].run_output.strip() == "100%")
         ]
     except:
         res = []

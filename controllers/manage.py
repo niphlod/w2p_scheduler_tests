@@ -22,62 +22,62 @@ def clear_all():
     response.flash = "Cleared correctly"
 
 def worker1():
-    st.insert(task_name='one_time_only', function_name='demo4')
+    scheduler.queue_task(demo4, task_name='one_time_only')
     response.js = "$('#worker_1_queue').addClass('disabled');"
     response.flash = "Function demo4 scheduled"
 
 def worker2():
-    st.insert(task_name='repeats', function_name='demo1', args=dumps(['a','b']), vars=dumps(dict(c=1, d=2)), repeats=2, period=10)
+    scheduler.queue_task(demo1, ['a','b'], dict(c=1, d=2), task_name='repeats', repeats=2, period=10)
     response.js = "$('#worker_2_queue').addClass('disabled');"
     response.flash = "Function demo1 scheduled"
 
 def worker3():
-    st.insert(task_name='retry_failed', function_name='demo2', retry_failed=1, period=10)
+    scheduler.queue_task(demo2, task_name='retry_failed', retry_failed=1, period=10)
     response.js = "$('#worker_3_queue').addClass('disabled');"
     response.flash = "Function demo2 scheduled"
 
 def worker4():
     stop_time = request.now - datetime.timedelta(seconds=60)
-    st.insert(task_name='expire', function_name='demo4', stop_time=stop_time)
+    scheduler.queue_task(demo4, task_name='expire', stop_time=stop_time)
     response.js = "$('#worker_4_queue').addClass('disabled');"
     response.flash = "Function demo4 scheduled with stop time %s" % stop_time
 
 def worker5():
     next_run_time = request.now - datetime.timedelta(seconds=60)
-    st.insert(task_name='priority1', function_name='demo1', args=dumps(['scheduled_first']))
-    st.insert(task_name='priority2', function_name='demo1', args=dumps(['scheduled_second']), next_run_time=next_run_time)
+    scheduler.queue_task(demo1, ['scheduled_first'], task_name='priority1')
+    scheduler.queue_task(demo1, ['scheduled_second'], task_name='priority2', next_run_time=next_run_time)
     response.js = "$('#worker_5_queue').addClass('disabled');"
     response.flash = "Function demo1 scheduled two times"
 
 def worker6():
-    st.insert(task_name='no_returns1', function_name='demo5')
-    st.insert(task_name='no_returns2', function_name='demo3')
+    scheduler.queue_task(demo5, task_name='no_returns1')
+    scheduler.queue_task(demo3, task_name='no_returns2')
     response.js = "$('#worker_6_queue').addClass('disabled');"
     response.flash = "Function demo5 and demo3 scheduled"
 
 def worker7():
-    st.insert(task_name='one_time_only', function_name='demo4')
+    scheduler.queue_task(demo4, task_name='one_time_only')
     response.js = "$('#worker_7_queue').addClass('disabled');"
     response.flash = "Function demo4 scheduled"
 
 def worker8():
-    st.insert(task_name='one_time_only', function_name='demo4')
+    scheduler.queue_task(demo4, task_name='one_time_only')
     response.js = "$('#worker_8_queue').addClass('disabled');"
     response.flash = "Function demo4 scheduled"
 
 def worker9():
-    st.insert(task_name='one_time_only', function_name='demo4')
+    scheduler.queue_task(demo4, task_name='one_time_only')
     response.js = "$('#worker_9_queue').addClass('disabled');"
     response.flash = "Function demo4 scheduled"
 
 def worker10():
-    st.insert(task_name='timeouts1', function_name='demo4', timeout=5)
-    st.insert(task_name='timeouts2', function_name='demo4')
+    scheduler.queue_task(demo4, task_name='timeouts1', timeout=5)
+    scheduler.queue_task(demo4, task_name='timeouts2')
     response.js = "$('#worker_10_queue').addClass('disabled');"
     response.flash = "Functions demo4 scheduled"
 
 def worker11():
-    st.insert(task_name='percentages', function_name='demo6', sync_output=2)
+    scheduler.queue_task(demo6, task_name='percentages', sync_output=2)
     response.js = "$('#worker_11_queue').addClass('disabled');"
     response.flash = "Function demo6 scheduled"
 
