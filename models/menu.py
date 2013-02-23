@@ -33,7 +33,9 @@ response.menu = [
         ('Priority', False, URL('default', 'tasks', anchor='worker_5')),
         ('Tasks with no return value', False, URL('default', 'tasks', anchor='worker_6')),
         ('Timeouts', False, URL('default', 'tasks', anchor='worker_10')),
-        ('Percentages', False, URL('default', 'tasks', anchor='worker_11'))
+        ('Percentages', False, URL('default', 'tasks', anchor='worker_11')),
+        ('Immediate', False, URL('default', 'tasks', anchor='worker_12')),
+        ('W2P_TASK', False, URL('default', 'tasks', anchor='worker_13'))
         ]),
     ('Workers', False, None, [
         ('Disable', False, URL('default', 'workers', anchor='worker_7')),

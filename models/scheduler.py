@@ -31,6 +31,12 @@ def demo6():
     print '!clear!100%'
     return 1
 
+import random
+def demo7():
+    time.sleep(random.randint(1,15))
+    print W2P_TASK, request.now
+    return W2P_TASK.id, W2P_TASK.uuid
+
 
 scheduler = Scheduler(db)
 ##or, alternatively :

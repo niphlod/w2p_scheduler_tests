@@ -17,8 +17,9 @@ def clear_all():
 
     btn_status = '#' + request.cid.replace('_cleara', '_status')
     btn_queue = '#' + request.cid.replace('_cleara', '_queue')
+    cont = '#' + request.cid.replace('_cleara', '_status_container')
 
-    response.js = "$('%s').removeClass('disabled');$('%s').removeClass('disabled');" % (btn_status, btn_queue)
+    response.js = "$('%s').removeClass('disabled');$('%s').removeClass('disabled');$('%s').removeClass('w2p_component_stop');" % (btn_status, btn_queue, cont)
     response.flash = "Cleared correctly"
 
 def worker1():
@@ -32,7 +33,8 @@ def worker2():
     response.flash = "Function demo1 scheduled"
 
 def worker3():
-    scheduler.queue_task(demo2, task_name='retry_failed', retry_failed=1, period=10)
+    for a in range(100):
+        scheduler.queue_task(demo2, task_name='retry_failed', retry_failed=1, period=10)
     response.js = "$('#worker_3_queue').addClass('disabled');"
     response.flash = "Function demo2 scheduled"
 
@@ -81,18 +83,28 @@ def worker11():
     response.js = "$('#worker_11_queue').addClass('disabled');"
     response.flash = "Function demo6 scheduled"
 
+def worker12():
+    scheduler.queue_task(demo1, ['a','b'], dict(c=1, d=2), task_name="immediate_task", immediate=True)
+    response.js = "$('#worker_12_queue').addClass('disabled');"
+    response.flash = "Function demo1 scheduled with immediate=True"
+
+def worker13():
+    scheduler.queue_task(demo7, task_name='task_variable')
+    response.js = "$('#worker_13_queue').addClass('disabled');"
+    response.flash = "Function demo7 scheduled"
+
 def enable_workers():
-    db(sw.id>0).update(status='ACTIVE')
+    scheduler.resume()
     response.flash = 'Workers enabled'
 
 def disable_workers():
-    db(sw.id>0).update(status='DISABLED')
+    scheduler.disable()
     response.flash = 'Workers disabled'
 
 def terminate_workers():
-    db(sw.id>0).update(status='TERMINATE')
+    scheduler.terminate()
     response.flash = 'TERMINATE command sent'
 
 def kill_workers():
-    db(sw.id>0).update(status='KILL')
+    scheduler.kill()
     response.flash = 'KILL command sent'

@@ -8,14 +8,13 @@ st = db.scheduler_task
 
 
 def worker1():
+    q = st.task_name=='one_time_only'
     try:
-        task = db(st.task_name=='one_time_only').select().first()
-        task_run = db(sr.scheduler_task == task.id).select()
+        info = scheduler.task_status(q, output=True)
         res = [
-            ("task status completed", task.status == 'COMPLETED'),
-            ("task times_run is 1" , task.times_run == 1),
-            ("task ran one time only" , len(task_run) == 1),
-            ("scheduler_run record is COMPLETED " , task_run[0].status == 'COMPLETED')
+            ("task status completed", info.scheduler_task.status == 'COMPLETED'),
+            ("task times_run is 1" , info.scheduler_task.times_run == 1),
+            ("scheduler_run record is COMPLETED " , info.scheduler_run.status == 'COMPLETED')
         ]
     except:
         res = [("Wait a few seconds and retry the 'verify' button", False)]
@@ -24,7 +23,7 @@ def worker1():
 
 def worker2():
     try:
-        task = db(st.task_name=='repeats').select().first()
+        task = scheduler.task_status(st.task_name=='repeats')
         task_run = db(sr.scheduler_task == task.id).select()
         res = [
             ("task status completed", task.status == 'COMPLETED'),
@@ -40,7 +39,7 @@ def worker2():
 
 def worker3():
     try:
-        task = db(st.task_name=='retry_failed').select().first()
+        task = scheduler.task_status(st.task_name=='retry_failed')
         task_run = db(sr.scheduler_task == task.id).select()
         res = [
             ("task status failed", task.status == 'FAILED'),
@@ -58,7 +57,7 @@ def worker3():
 
 def worker4():
     try:
-        task = db(st.task_name=='expire').select().first()
+        task = scheduler.task_status(st.task_name=='expire')
         task_run = db(sr.scheduler_task == task.id).select()
         res = [
             ("task status expired", task.status == 'EXPIRED'),
@@ -72,13 +71,11 @@ def worker4():
 
 def worker5():
     try:
-        task1 = db(st.task_name=='priority1').select().first()
-        task2 = db(st.task_name=='priority2').select().first()
-        task_run1 = db(sr.scheduler_task == task1.id).select()
-        task_run2 = db(sr.scheduler_task == task2.id).select()
+        task1 = scheduler.task_status(st.task_name=='priority1', output=True)
+        task2 = scheduler.task_status(st.task_name=='priority2', output=True)
         res = [
-            ("tasks status completed", task1.status == task2.status == 'COMPLETED'),
-            ("priority2 was executed before priority1" , task_run1[0].id > task_run2[0].id)
+            ("tasks status completed", task1.scheduler_task.status == task2.scheduler_task.status == 'COMPLETED'),
+            ("priority2 was executed before priority1" , task1.scheduler_run.id > task2.scheduler_run.id)
         ]
     except:
         res = []
@@ -87,8 +84,8 @@ def worker5():
 
 def worker6():
     try:
-        task1 = db(st.task_name=='no_returns1').select().first()
-        task2 = db(st.task_name=='no_returns2').select().first()
+        task1 = scheduler.task_status(st.task_name=='no_returns1')
+        task2 = scheduler.task_status(st.task_name=='no_returns2')
         task_run1 = db(sr.scheduler_task == task1.id).select()
         task_run2 = db(sr.scheduler_task == task2.id).select()
         res = [
@@ -104,14 +101,12 @@ def worker6():
 
 def worker10():
     try:
-        task1 = db(st.task_name=='timeouts1').select().first()
-        task2 = db(st.task_name=='timeouts2').select().first()
-        task_run1 = db(sr.scheduler_task == task1.id).select()
-        task_run2 = db(sr.scheduler_task == task2.id).select()
+        task1 = scheduler.task_status(st.task_name=='timeouts1', output=True)
+        task2 = scheduler.task_status(st.task_name=='timeouts2', output=True)
         res = [
-            ("tasks timeouts1 timeoutted", task1.status == 'TIMEOUT'),
-            ("tasks timeouts2 completed", task2.status == 'COMPLETED'),
-            ("task timeouts1 stop_time-start_time = ~5 seconds", (task_run1[0].stop_time - task_run1[0].start_time).seconds < 7)
+            ("tasks timeouts1 timeoutted", task1.scheduler_task.status == 'TIMEOUT'),
+            ("tasks timeouts2 completed", task2.scheduler_task.status == 'COMPLETED'),
+            ("task timeouts1 stop_time-start_time = ~5 seconds", (task1.scheduler_run.stop_time - task1.scheduler_run.start_time).seconds < 7)
         ]
     except:
         res = []
@@ -120,12 +115,40 @@ def worker10():
 
 def worker11():
     try:
-        task1 = db(st.task_name=='percentages').select().first()
-        task_run1 = db(sr.scheduler_task == task1.id).select()
+        task1 = scheduler.task_status(st.task_name=='percentages', output=True)
+        print task1
         res = [
-            ("tasks percentages completed", task1.status == 'COMPLETED'),
-            ("output contains only 100%", task_run1[0].run_output.strip() == "100%")
+            ("tasks percentages completed", task1.scheduler_task.status == 'COMPLETED'),
+            ("output contains only 100%", task1.scheduler_run.run_output.strip() == "100%")
         ]
+    except:
+        res = []
+    response.view = 'default/verify.load'
+    return dict(res=res)
+
+
+def worker12():
+    try:
+        res = []
+        tasks = db(st.task_name=='immediate_task').select()
+        for task in tasks:
+            run_record = db(sr.scheduler_task == task.id).select().first()
+            elapsed = (run_record.start_time - task.start_time).seconds 
+            res.append(
+                ("task %s got executed %s seconds later (less than 10 is good because it means it got assigned soon, and we're using SQLite)" % (task.id,elapsed),  elapsed < 10),
+            )
+    except:
+        res = []
+    response.view = 'default/verify.load'
+    return dict(res=res)
+
+
+def worker13():
+    try:
+        task1 = scheduler.task_status(st.task_name=='task_variable', output=True) 
+        res = [
+                ("task %s returned W2P_TASK correctly" % (task1.scheduler_task.id),  task1.result == [task1.scheduler_task.id, task1.scheduler_task.uuid]),
+            ]
     except:
         res = []
     response.view = 'default/verify.load'
