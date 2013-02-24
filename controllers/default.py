@@ -11,6 +11,9 @@
 
 from gluon.storage import Storage
 
+response.files.append(URL('static', 'css/prettify.css'))
+response.files.append(URL('static', 'js/prettify.js'))
+
 def index():
     steps = [
         'one-time', 'repeats', 'repeats_failed',
