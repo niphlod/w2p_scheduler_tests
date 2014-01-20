@@ -24,7 +24,7 @@ def worker1():
 def worker2():
     try:
         task = scheduler.task_status(st.task_name=='repeats')
-        task_run = db(sr.scheduler_task == task.id).select()
+        task_run = db(sr.task_id == task.id).select()
         res = [
             ("task status completed", task.status == 'COMPLETED'),
             ("task times_run is 2" , task.times_run == 2),
@@ -40,7 +40,7 @@ def worker2():
 def worker3():
     try:
         task = scheduler.task_status(st.task_name=='retry_failed')
-        task_run = db(sr.scheduler_task == task.id).select()
+        task_run = db(sr.task_id == task.id).select()
         res = [
             ("task status failed", task.status == 'FAILED'),
             ("task times_run is 0" , task.times_run == 0),
@@ -58,7 +58,7 @@ def worker3():
 def worker4():
     try:
         task = scheduler.task_status(st.task_name=='expire')
-        task_run = db(sr.scheduler_task == task.id).select()
+        task_run = db(sr.task_id == task.id).select()
         res = [
             ("task status expired", task.status == 'EXPIRED'),
             ("task times_run is 0" , task.times_run == 0),
@@ -86,8 +86,8 @@ def worker6():
     try:
         task1 = scheduler.task_status(st.task_name=='no_returns1')
         task2 = scheduler.task_status(st.task_name=='no_returns2')
-        task_run1 = db(sr.scheduler_task == task1.id).select()
-        task_run2 = db(sr.scheduler_task == task2.id).select()
+        task_run1 = db(sr.task_id == task1.id).select()
+        task_run2 = db(sr.task_id == task2.id).select()
         res = [
             ("tasks no_returns1 completed", task1.status == 'COMPLETED'),
             ("tasks no_returns2 failed", task2.status == 'FAILED'),
@@ -132,8 +132,8 @@ def worker12():
         res = []
         tasks = db(st.task_name=='immediate_task').select()
         for task in tasks:
-            run_record = db(sr.scheduler_task == task.id).select().first()
-            elapsed = (run_record.start_time - task.start_time).seconds 
+            run_record = db(sr.task_id == task.id).select().first()
+            elapsed = (run_record.start_time - task.start_time).seconds
             res.append(
                 ("task %s got executed %s seconds later (less than 10 is good because it means it got assigned soon, and we're using SQLite)" % (task.id,elapsed),  elapsed < 10),
             )
@@ -145,11 +145,27 @@ def worker12():
 
 def worker13():
     try:
-        task1 = scheduler.task_status(st.task_name=='task_variable', output=True) 
+        task1 = scheduler.task_status(st.task_name=='task_variable', output=True)
         res = [
                 ("task %s returned W2P_TASK correctly" % (task1.scheduler_task.id),  task1.result == [task1.scheduler_task.id, task1.scheduler_task.uuid]),
             ]
     except:
         res = []
+    response.view = 'default/verify.load'
+    return dict(res=res)
+
+def worker14():
+    try:
+        task = scheduler.task_status(st.task_name=='prevent_drift')
+        task_run = db(sr.task_id == task.id).select()
+        res = [
+            ("task status completed", task.status == 'COMPLETED'),
+            ("task times_run is 2" , task.times_run == 2),
+            ("task ran 2 times only" , len(task_run) == 2),
+            ("scheduler_run records are COMPLETED " , (task_run[0].status == task_run[1].status == 'COMPLETED')),
+            ("next_run_time is exactly start_time + 20 seconds", (task.next_run_time == task.start_time + datetime.timedelta(seconds=20)))
+        ]
+    except:
+        res = [("Wait a few seconds and retry the 'verify' button", False)]
     response.view = 'default/verify.load'
     return dict(res=res)

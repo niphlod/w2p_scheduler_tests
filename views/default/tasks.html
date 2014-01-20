@@ -261,6 +261,31 @@
 </div>
 <hr />
 
+<div id="worker_14" class="row section">
+    <div class="span12">
+        {{=MARKMIN(docs.prevent_drift)}}
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>
+            {{=A('1. Clear All', _class="btn clear_all", _href=URL('manage', 'clear_all'), _id="worker_14_clear")}}
+            {{=A('2. Start Monitoring', _class="btn monitoring disabled", _href=URL('monitor', 'get_status.load'), _id="worker_14_status")}}
+            {{=A('3. Queue Task', _class="btn primary autoremove disabled", _href=URL('manage', 'worker14'), _id="worker_14_queue")}}
+            {{=A('4. Stop Monitoring', _class="btn", _onclick="$('#worker_14_status_container').addClass('w2p_component_stop');return false;")}}
+            {{=A('5. Verify', _class="btn", callback=URL('verify', 'worker14'), target="worker_14_verify")}}
+        <p>
+        <div id="worker_14_status_container"></div>
+        <div id="worker_14_verify"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {{=MARKMIN(comments.prevent_drift)}}
+    </div>
+</div>
+<hr />
+
 <script type="text/javascript">
     $(function() {
         $('pre').addClass("prettyprint");

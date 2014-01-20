@@ -6,13 +6,16 @@ Status at {{=request.now}}
 {{fields = [a for a in db.scheduler_task.fields]}}
 <table class="table table-condensed">
     {{while len(fields)>0:}}
-	<tr>
+    <tr>
         {{k=fields.pop(0)}}
         <td><b>{{=db.scheduler_task[k].label}}</b></td>
         <td>{{=task[k]}}</td>
+        {{if len(fields)>0:}}
         {{k=fields.pop(0)}}
         <td><b>{{=db.scheduler_task[k].label}}</b></td>
         <td>{{=task[k]}}</td>
+        {{else:}}<td></td><td></td>
+        {{pass}}
     <tr>
     {{pass}}
 </table>

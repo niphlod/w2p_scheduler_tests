@@ -33,8 +33,7 @@ def worker2():
     response.flash = "Function demo1 scheduled"
 
 def worker3():
-    for a in range(100):
-        scheduler.queue_task(demo2, task_name='retry_failed', retry_failed=1, period=10)
+    scheduler.queue_task(demo2, task_name='retry_failed', retry_failed=1, period=10)
     response.js = "$('#worker_3_queue').addClass('disabled');"
     response.flash = "Function demo2 scheduled"
 
@@ -92,6 +91,11 @@ def worker13():
     scheduler.queue_task(demo7, task_name='task_variable')
     response.js = "$('#worker_13_queue').addClass('disabled');"
     response.flash = "Function demo7 scheduled"
+
+def worker14():
+    scheduler.queue_task(demo1, ['a','b'], dict(c=1, d=2), task_name="prevent_drift", repeats=2, period=10, prevent_drift=True)
+    response.js = "$('#worker_14_queue').addClass('disabled');"
+    response.flash = "Function demo1 scheduled"
 
 def enable_workers():
     scheduler.resume()

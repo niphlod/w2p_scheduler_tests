@@ -9,6 +9,7 @@
 ## - call exposes all registered services (none by default)
 #########################################################################
 
+
 from gluon.storage import Storage
 
 response.files.append(URL('static', 'css/prettify.css'))
@@ -45,7 +46,7 @@ def call():
 def tasks():
     steps = [
         'intro',
-        'one_time', 'repeats', 'repeats_failed',
+        'one_time', 'repeats', 'repeats_failed', 'prevent_drift',
         'group_names', 'uuid', 'futures', 'priority',
         'immediate'
         ]
@@ -396,7 +397,30 @@ You can use it to coordinate tasks, or to do some specialized logging.
 scheduler.queue_task(demo7, task_name='task_variable')
 ``
 """
+
+    docs.prevent_drift = """
+#### The ``prevent_drift`` parameter
+
+The scheduler replaced a lot of ``cron`` facilities around, but the difference are somehow subtle in some cases.
+With a repeating task, by default the scheduler assumes that you want at least ``period`` seconds to pass
+between one execution and the following one. You need to remember that the scheduler picks up the tasks as soon as possible:
+this means that a task with a specific ``start_time`` will be picked up only if ``start_time`` is in the past.
+Usually a few seconds pass by, and this is not an issue, but if you're scheduling a task to start at 9:00AM every morning,
+you'll see the start_times of the executions slowly ''drifting'' from 9:00AM to 9:01AM.
+This is because if the scheduler is busy processing tasks the first time at 9:00AM, your task will be picked up at 9:01AM,
+and the next execution the scheduler will pick up the task only if 9:01AM are passed.
+From 2.8.3, you can pass a ``prevent_drift`` parameter that will enable the scheduler to calculate the times between execution
+more like cron, i.e. on the ``start_time`` instead of the actual execution of the task.
+Beware! This means that the paradigm where the scheduler lets pass at least ``period`` seconds is invalidated.
+
+``
+scheduler.queue_task(demo1, ['a','b'], dict(c=1, d=2), task_name="prevent_drift", repeats=2, period=10, prevent_drift=True)
+``
+
+"""
+
     return dict(docs=docs, comments=comments)
+
 
 def workers():
     steps = ['enabled', 'expiring', 'group_names_percentage',
@@ -593,8 +617,12 @@ Additionally, you can control how many times a task should be repeated (i.e. you
 need to aggregate some data at specified intervals). To do so, set the ``repeats``
 parameter (default = 1 time only, 0 = unlimited). You can influence how many seconds should pass between executions
 with the ``period`` parameter (default = 60 seconds).
+
 NB: the time is not calculated between the END of the first round and the START of the next, but
-from the START time of the first round to the START time of the next cycle)
+from the START time of the first execution to the START time of the next execution).
+There's a parameter named ``prevent_drift`` that if set to ``True`` will instead calculate the time
+based on the scheduled ``start_time`` (vs the default behaviour that instead calculates the time
+based on the **actual** time the task had been picked up)
 
 Another nice addition, you can set how many times the function can raise an exception (i.e.
 requesting data from a sloooow webservice) and be queued again instead of stopping in **FAILED**

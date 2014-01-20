@@ -35,7 +35,8 @@ response.menu = [
         ('Timeouts', False, URL('default', 'tasks', anchor='worker_10')),
         ('Percentages', False, URL('default', 'tasks', anchor='worker_11')),
         ('Immediate', False, URL('default', 'tasks', anchor='worker_12')),
-        ('W2P_TASK', False, URL('default', 'tasks', anchor='worker_13'))
+        ('W2P_TASK', False, URL('default', 'tasks', anchor='worker_13')),
+        ('Prevent Drift', False, URL('default', 'tasks', anchor='worker_14'))
         ]),
     ('Workers', False, None, [
         ('Disable', False, URL('default', 'workers', anchor='worker_7')),
