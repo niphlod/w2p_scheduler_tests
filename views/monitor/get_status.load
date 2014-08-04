@@ -1,7 +1,7 @@
-Status at {{=request.now}}
-<h6>scheduler_worker</h6>
+Status at {{=request.now.strftime('%Y-%m-%d %H:%M:%S')}}
+<h5>scheduler_worker</h5>
 {{=SQLTABLE(swstatus, _class="table table-condensed", headers="labels")}}
-<h6>scheduler_task</h6>
+<h5>scheduler_task</h5>
 {{for task in ststatus:}}
 {{fields = [a for a in db.scheduler_task.fields]}}
 <table class="table table-condensed">
@@ -21,5 +21,5 @@ Status at {{=request.now}}
 </table>
 {{pass}}
 
-<h6>scheduler_run</h6>
+<h5>scheduler_run</h5>
 {{=SQLTABLE(srstatus, _class="table table-condensed", headers="labels")}}

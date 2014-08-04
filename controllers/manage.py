@@ -97,6 +97,15 @@ def worker14():
     response.js = "$('#worker_14_queue').addClass('disabled');"
     response.flash = "Function demo1 scheduled"
 
+def worker15():
+    scheduler.queue_task(demo6, task_name='stop_task', uuid='stop_task')
+    response.js = "$('#worker_15_queue').addClass('disabled');"
+    response.flash = "Function demo7 scheduled"
+
+def stop_task_15():
+    scheduler.stop_task('stop_task')
+    response.flash = "Task stopped"
+
 def enable_workers():
     scheduler.resume()
     response.flash = 'Workers enabled'

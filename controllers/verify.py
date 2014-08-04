@@ -169,3 +169,20 @@ def worker14():
         res = [("Wait a few seconds and retry the 'verify' button", False)]
     response.view = 'default/verify.load'
     return dict(res=res)
+
+def worker15():
+    try:
+        task = scheduler.task_status(st.task_name=='stop_task')
+        task_run = db(sr.task_id == task.id).select()
+        if len(task_run):
+            res = [
+                ("task status FAILED", task.status == 'FAILED')
+            ]
+        else:
+            res = [
+                ("task status STOPPED", task.status == 'STOPPED')
+            ]
+    except:
+        res = [("Wait a few seconds and retry the 'verify' button", False)]
+    response.view = 'default/verify.load'
+    return dict(res=res)

@@ -37,8 +37,8 @@ def demo7():
     print W2P_TASK, request.now
     return W2P_TASK.id, W2P_TASK.uuid
 
-
 scheduler = Scheduler(db)
+
 ##or, alternatively :
 #scheduler = Scheduler(db,
 #                      dict(

@@ -109,6 +109,11 @@ def demo6():
     print '!clear!100%'
     return 1
 
+import random
+def demo7():
+    time.sleep(random.randint(1,15))
+    print W2P_TASK, request.now
+    return W2P_TASK.id, W2P_TASK.uuid
 
 scheduler = Scheduler(db)
 ##or, alternatively :
@@ -130,6 +135,7 @@ So, we have:
  -  demo4 : sleeps for 15 seconds, print something, returns a dictionary
  -  demo5 : sleeps for 15 seconds, print nothing, doesn't return anything
  -  demo6 : sleeps for 5 seconds, print something, sleeps 5 seconds, print something, return 1
+ -  demo7 : sleeps for a random time, prints and returns W2P_TASK.id and W2P_TASK.uuid
 
 The scheduler istantiated with the db only. Optionally, you can pass a dictionary
 containing a mapping between strings and functions.
@@ -419,6 +425,44 @@ scheduler.queue_task(demo1, ['a','b'], dict(c=1, d=2), task_name="prevent_drift"
 
 """
 
+    docs.stop_task = """
+#### The ``stop_task`` method
+
+If you need to stop a runaway task, the only way is to tell the worker to terminate the running process. Asking users
+to retrieve the current worker processing the task and update its status to ``STOP_TASK`` was "Too Much",
+so there's an experimental API for it.
+
+NB: If the task is RUNNING it will terminate it, meaning that status will be set as FAILED. If the task is QUEUED,
+its stop_time will be set as to "now", the enabled flag will be set to False, and the status to STOPPED
+
+``stop_task`` either takes an integer or a string: if it's an integer it's assumed to be the id, if it's a string it's assumed to
+be an uuid
+
+So, given that the runaway task has been queued with
+``
+scheduler.queue_task(demo6, task_name='stop_task', uuid='stop_task')
+``
+you can stop it with
+``
+scheduler.stop_task('stop_task')
+``
+
+Instructions (same as before):
+ - Push "Clear All"
+ - Push "Start Monitoring"
+ - If not yet, start a worker in another shell ``web2py.py -K w2p_scheduler_tests``
+ - Wait a few seconds, a worker shows up
+ - Push "Queue Task"
+ - Wait a few seconds
+ - Push "Stop Task"
+
+
+Verify that:
+ - task gets **STOPPED** or **FAILED**, according to it was running or not
+
+Than, click "Stop Monitoring".
+"""
+
     return dict(docs=docs, comments=comments)
 
 
@@ -636,6 +680,99 @@ Summary: you have
  - ``retry_failed`` to control how many times the task can "fail"
  - ``start_time`` and ``stop_time`` to schedule a function in a restricted timeframe
     """
+    return dict(docs=docs)
+
+
+def jobs():
+    docs = Storage()
+    docs.jobs = """
+### Jobs
+
+It's been a long ride until here but we were still missing a feature (hopefully stable from web2py 2.10+)...Jobs.
+
+What are "Jobs", you ask ? Well, it's a way to coordinate a set of tasks that have dependencies (what in Celery is called "Canvas").
+
+As always, the Scheduler sticks to the basics. Every Job is considered to be a DAG (a [[Directed Acyclic Graph http://en.wikipedia.org/wiki/Directed_acyclic_graph]]).
+Without going into silly details, every task can have one or more dependencies, but of course you can't have mutual dependencies among the same tasks.
+If a "job" can't be represented as a DAG, then it can't be processed in its entirety. You can still queue it, but it won't ever complete (i.e. you could have a
+  complete stall at the first task or just a task left on 100 queued...)
+
+So... what can you do ?
+Let's take a trivial example (there are a few based on mathematics, map/reduce, etc... but hey, this is an example!!!)
+Suppose you need to create a job that describes what is needed to get dressed ( thanks to http://hansolav.net/sql/graphs.html )...
+
+We have a few items to wear, and there's an "order" to respect...
+Items are: watch, jacket, shirt, tie, pants, undershorts, belt, shoes, socks
+
+Now, we can't put on the tie without wearing the shirt first, etc...
+
+[[job http://yuml.me/995413d6 center]]
+
+
+Suppose we have those tasks queued in a controller (for example's sake, the same function, with different task_name(s))...
+
+``
+watch = s.queue_task(fname, task_name='watch')
+jacket = s.queue_task(fname, task_name='jacket')
+shirt = s.queue_task(fname, task_name='shirt')
+tie = s.queue_task(fname, task_name='tie')
+pants = s.queue_task(fname, task_name='pants')
+undershorts = s.queue_task(fname, task_name='undershorts')
+belt = s.queue_task(fname, task_name='belt')
+shoes = s.queue_task(fname, task_name='shoes')
+socks = s.queue_task(fname, task_name='socks')
+``
+Now, there's a helper class to construct and validate a "job".
+First, let's declare a job named "job_1"
+
+``
+#from gluon.scheduler import JobGraph
+myjob = JobGraph(db, 'job_1')
+``
+
+Next, we'd need to establish dependencies
+
+``
+# before the tie, comes the shirt
+myjob.add_deps(tie.id, shirt.id)
+# before the belt too comes the shirt
+myjob.add_deps(belt.id, shirt.id)
+# before the jacket, comes the tie
+myjob.add_deps(jacket.id, tie.id)
+# before the belt, come the pants
+myjob.add_deps(belt.id, pants.id)
+# before the shoes, comes the pants
+myjob.add_deps(shoes.id, pants.id)
+# before the pants, comes the undershorts
+myjob.add_deps(pants.id, undershorts.id)
+# before the shoes, comes the undershorts
+myjob.add_deps(shoes.id, undershorts.id)
+# before the jacket, comes the belt
+myjob.add_deps(jacket.id, belt.id)
+# before the shoes, comes the socks
+myjob.add_deps(shoes.id, socks.id)
+``
+
+Then, we can ask JobGraph if what we asked is a job that is accomplishable
+``
+myjob.validate('job_1')
+``
+
+And voilà, job done!
+
+How it works under the hood ?
+
+There's a new table called ``scheduler_task_deps`` that holds a reference to the job_name, the task parent, the task child and
+a boolean to mark the "path" (the arrows in the graph) as "visitable".
+To be fair, the job name isn't that important, you can have task dependencies amongst
+different jobs, it's just not that easy to verify that the Job is a DAG at a later stage.
+If a path is "visitable" it means that the DAG graph can be "walked" in that direction.
+Every time a task gets "COMPLETED", the "paths" gets updated to be "visitable". The algo to pick up tasks has been updated
+to work fetching only tasks that have no dependencies, or dependencies that have already been satisfied (i.e. tasks that depends
+on nothing, or tasks that depend on tasks that are yet COMPLETED).
+
+"""
+
     return dict(docs=docs)
 
 
