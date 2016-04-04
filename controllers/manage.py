@@ -102,6 +102,11 @@ def worker15():
     response.js = "$('#worker_15_queue').addClass('disabled');"
     response.flash = "Function demo7 scheduled"
 
+def worker16():
+    scheduler.queue_task(demo8, task_name='retry_failed_consecutive', retry_failed=2, repeats=2, period=10)
+    response.js = "$('#worker_16_queue').addClass('disabled');"
+    response.flash = "Function demo8 scheduled"
+
 def stop_task_15():
     scheduler.stop_task('stop_task')
     response.flash = "Task stopped"

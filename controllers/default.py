@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
 
 #########################################################################
@@ -15,9 +15,15 @@ from gluon.storage import Storage
 response.files.append(URL('static', 'css/prettify.css'))
 response.files.append(URL('static', 'js/prettify.js'))
 
+def test():
+    for a in range(1):
+        scheduler.queue_task('addmyfunction', pargs=[1,2], immediate=True)
+    return dict(a=1, b=2)
+    #return myautoscale()
+
 def index():
     steps = [
-        'one-time', 'repeats', 'repeats_failed',
+        'one_time', 'repeats', 'repeats_failed',
         'group_names', 'uuid', 'futures', 'priority',
         'enabled', 'expiring', 'group_names_percentage',
         'die_automatically', 'traceback', 'kill', 'terminate',
@@ -54,9 +60,11 @@ def tasks():
     comments = Storage()
     docs.intro = """
 #### Intro
-So, here we are trying to learn (and test) web2py's scheduler.
-
-Actually you have to download latest trunk scheduler to make it work (backup current gluon/scheduler.py and replace with the one on trunk).
+So, here we are trying to learn (and test) web2py's scheduler. This app always
+documents the latest scheduler available in web2py, so make sure downloaded
+the latest version in "master" repo scheduler
+to make it work (backup current gluon/scheduler.py and replace with the one
+on "master", just to be safe).
 
 This app ships with a default SQLite database, feel free to test on your preferred db engine.
 
@@ -74,7 +82,7 @@ DRY!
 Additionally, every example uses ``task_name``, but that is not a required parameter.
 It just helps **this app** to verify that all is working correctly when you press the **Verify** button.
 
-We have 3 functions defined into models/scheduler.py (don't get confused). It should be something like this:
+We have 7 functions defined into models/scheduler.py (don't get confused). It should be something like this:
 ``
 # coding: utf8
 import time
@@ -137,12 +145,12 @@ So, we have:
  -  demo6 : sleeps for 5 seconds, print something, sleeps 5 seconds, print something, return 1
  -  demo7 : sleeps for a random time, prints and returns W2P_TASK.id and W2P_TASK.uuid
 
-The scheduler istantiated with the db only. Optionally, you can pass a dictionary
+The scheduler is istantiated with the db only. Optionally, you can pass a dictionary
 containing a mapping between strings and functions.
 In the latter case, all functions are "assigned" to a string that is the function name,
 except for function demo5 that we "assigned" to 'foo'.
 
-All interactions with scheduler is done acting on the scheduler_* tables, or using its API
+All interactions with scheduler are done using the public API.
 
 #### Exposed Api
 
@@ -274,7 +282,22 @@ We'll enqueue demo2, that we know if will fail in both runs, just to check if ev
 works as expected (i.e. it gets re-queued only one time after the first FAILED run)
 
 ``
-scheduler.queue_task(demo2, task_name='retry_failed', retry_failed=2, period=10)
+scheduler.queue_task(demo2, task_name='retry_failed', retry_failed=1, period=10)
+``
+    """
+    docs.repeats_failed_consecutive = """
+#### Retry Failed, round #2: understanding "consecutive failures"
+
+As explained before, demo8 will fail the first two times, and then completes.
+As soon as a repeating task completes, the "failed counter" gets resetted.
+This means that if we queue demo8 with two allowed failures and 2 repeats,
+we'll see 6 executions, also if the total failures will sum up to 4.
+This is useful for tasks that are dependant on external resources that may
+be occasionally unavailable, and but still want to have the task to be executed if not too
+many failures occurred consecutively.
+
+``
+scheduler.queue_task(demo8, task_name='retry_failed_consecutive', retry_failed=2, repeats=2, period=10)
 ``
     """
     docs.expire = """
@@ -545,7 +568,8 @@ def how_it_works():
 ### Scheduler
 
 Worker fine management is hard. This module tries not to leave behind any platform
-(Mac, Win, Linux) . Right now workers can be started with an "embedded" mode:
+(Mac, Win, Linux) providing the same feature set.
+Right now workers can be started with an "embedded" mode:
 
 ``web2py.py -K appname``
 
@@ -562,14 +586,13 @@ When you start a worker, you may want later to:
 Maybe you have yet some tasks queued, and you want to save some resources.
 You know you want them processed every hour, so, you'll want to:
  - process all queued tasks and die automatically
-All of these things are possible managing ``Scheduler`` parameters or the ``scheduler_worker`` table.
-To be more precise, for started workers you will change the ``status`` value of any worker to influence
-its behaviour.
+All of these things are possible managing ``Scheduler`` parameters or using the API.
+Altering the status via ``disable()``, ``resume()``, ``terminate()``, ``kill()`` is the way to go.
 As tasks, workers can be in some fixed statuses : ACTIVE, DISABLED, TERMINATE or KILLED.
 
 **ACTIVE** and **DISABLED** are "persistent", while **TERMINATE** or **KILL**, as statuses
 name suggest, are more "commands" than real statuses.
-Hitting ctrl+c is equal to set a worker to **KILL**
+Hitting ctrl+c in the console where a worker is started is equal to ``kill()`` that worker.
 
 [[workers statuses http://yuml.me/bd891eed.jpg center]]
 The complete signature of the scheduler class is
@@ -588,46 +611,46 @@ Scheduler(
 Let's see them in order:
 
 - ``db`` is the database DAL instance were you want the scheduler tables be placed.
-NB: If you're using SQLite it's best to create a separate db to avoid lockings
+NB: If you're using SQLite it's best to create a separate db to avoid lockings, and using
+WAL is recommended
 
 - ``tasks`` can be a dict. Must be defined for the "direct" mode or if you want to call a function
-not by his name, i.e.
-``tasks=(mynameddemo1=demo1)`` will let you execute function demo1 with
-``st.insert(task_name='mytask', function_name='mynameddemo1')``
-or
-``st.insert(task_name='mytask', function_name='demo1')``
-In "embedded" mode, if you don't pass this parameter, function will be searched in the app environment.
+  not by his name, i.e.
+  ``tasks=(mynameddemo1=demo1)`` will let you execute function demo1 with
+  ``scheduler.queue_task('mynameddemo1')``
+  instead of
+  ``scheduler.queue_task('demo1')``
+  In "embedded" mode, if you don't pass this parameter, function will be searched in the app environment.
 
 - ``worker_name`` is None by default. As soon as the worker is started, a worker name
-is generated as hostname-uuid. If you want to specify that, be sure that it's unique.
+  is generated as hostname-uuid. If you want to specify that, be sure that it's unique.
 
 - ``group_names`` is by default set to **[main]**. All tasks have a ``group_name`` parameter,
-set to **main** by default.
-Workers can pick up tasks of their assigned group.
-NB: This is useful if you have different workers instances (e.g. on different machines)
-and you want to assign tasks to a specific worker.
-NB2: It's possible to assign a worker more groups, and they can be also all the same, as
-``['mygroup','mygroup']``. Tasks will be distributed taking into consideration that
-a worker with group_names ``['mygroup','mygroup']`` is able to process the double of the tasks
-a worker with group_names ``['mygroup']`` is.
+  set to **main** by default.
+  Workers can pick up tasks only of their assigned group(s).
+  NB: This is useful if you have different workers instances (e.g. on different servers)
+  and you want to assign tasks to a specific worker.
+  NB2: It's possible to assign a worker more groups, and they can be also all the same, as
+  ``['mygroup','mygroup']``. Tasks will be distributed taking into consideration that
+  a worker with group_names ``['mygroup','mygroup']`` is able to process the double of the tasks
+  a worker with group_names ``['mygroup']`` is.
 
 - ``heartbeat`` is by default set to 3 seconds. This parameter is the one controlling how often
-a scheduler will check its status on the ``scheduler_worker`` table and see if there are any
-**ASSIGNED** tasks to itself to process.
+  a scheduler will check its status and see if there are any **ASSIGNED** tasks to itself to process.
 
 - ``max_empty_runs`` is 0 by default, that means that the worker will continue to process tasks
-as soon as they are **ASSIGNED**. If you set this to a value of, let's say, 10, a worker
-will die automatically if it's **ACTIVE** and no tasks are **ASSIGNED** to it for 10 loops.
-A loop is when a worker searches for tasks, every 3 seconds (or the set ``heartbeat``)
+  as soon as they are **ASSIGNED**. If you set this to a value of, let's say, 10, a worker
+  will die automatically if it's **ACTIVE** and no tasks are **ASSIGNED** to it for 10 loops.
+  A loop is when a worker searches for tasks, every 3 seconds (or the set ``heartbeat``)
 
 - ``discard_results`` is False by default. If set to True, no scheduler_run records will be created.
-NB: scheduler_run records will be created as before for **FAILED**, **TIMEOUT** and
-**STOPPED** tasks's statuses.
+  NB: scheduler_run records will be created as before for **FAILED**, **TIMEOUT** and
+  **STOPPED** tasks's statuses.
 
 -``utc_time`` is False by default. If you need to coordinate with workers living in different
-timezones, or don't have problems with solar/DST times, supplying datetimes from different countries,
-etc, you can set this to True. The scheduler will honour the UTC time and work leaving the local
-time aside. Caveat: you need to schedule tasks with UTC times (for start_time, stop_time, and so on.)
+  timezones, or don't have problems with solar/DST times, supplying datetimes from different countries,
+  etc, you can set this to True. The scheduler will honour the UTC time and work leaving the local
+  time aside. Caveat: you need to schedule tasks with UTC times (for start_time, stop_time, and so on.)
     """
     docs.tasks = """
 ### Tasks lifecycle
@@ -669,15 +692,16 @@ based on the scheduled ``start_time`` (vs the default behaviour that instead cal
 based on the **actual** time the task had been picked up)
 
 Another nice addition, you can set how many times the function can raise an exception (i.e.
-requesting data from a sloooow webservice) and be queued again instead of stopping in **FAILED**
-status with the parameter ``retry_failed`` (default = 0, -1 = unlimited).
+requesting data from a sloooow webservice) consecutively and be queued again instead of stopping in
+**FAILED** status with the parameter ``retry_failed`` (default = 0, -1 = unlimited).
+As soon as the task completes, the "failed" counter is reset.
 
 [[task repeats http://yuml.me/7d8b85e4.jpg center]]
 
 Summary: you have
  - ``period`` and ``repeats`` to get an automatically rescheduled function
  - ``timeout`` to be sure that a function doesn't exceed a certain amount of time
- - ``retry_failed`` to control how many times the task can "fail"
+ - ``retry_failed`` to control how many times the task can "fail" consecutively
  - ``start_time`` and ``stop_time`` to schedule a function in a restricted timeframe
     """
     return dict(docs=docs)

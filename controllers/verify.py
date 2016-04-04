@@ -9,14 +9,14 @@ st = db.scheduler_task
 
 def worker1():
     q = st.task_name=='one_time_only'
-    try:
+    if 1:
         info = scheduler.task_status(q, output=True)
         res = [
             ("task status completed", info.scheduler_task.status == 'COMPLETED'),
             ("task times_run is 1" , info.scheduler_task.times_run == 1),
             ("scheduler_run record is COMPLETED " , info.scheduler_run.status == 'COMPLETED')
         ]
-    except:
+    else:
         res = [("Wait a few seconds and retry the 'verify' button", False)]
     response.view = 'default/verify.load'
     return dict(res=res)
@@ -116,7 +116,6 @@ def worker10():
 def worker11():
     try:
         task1 = scheduler.task_status(st.task_name=='percentages', output=True)
-        print task1
         res = [
             ("tasks percentages completed", task1.scheduler_task.status == 'COMPLETED'),
             ("output contains only 100%", task1.scheduler_run.run_output.strip() == "100%")
@@ -182,6 +181,23 @@ def worker15():
             res = [
                 ("task status STOPPED", task.status == 'STOPPED')
             ]
+    except:
+        res = [("Wait a few seconds and retry the 'verify' button", False)]
+    response.view = 'default/verify.load'
+    return dict(res=res)
+
+def worker16():
+    try:
+        task = scheduler.task_status(st.task_name=='retry_failed_consecutive')
+        task_run = db(sr.task_id == task.id).select()
+        res = [
+            ("task status completed", task.status == 'COMPLETED'),
+            ("task times_run is 2" , task.times_run == 2),
+            ("task times_failed is 0" , task.times_failed == 0),
+            ("task ran 6 times" , len(task_run) == 6),
+            ("scheduler_run records for COMPLETED is 2" , len([run.status for run in task_run if run.status == 'COMPLETED']) == 2),
+            ("scheduler_run records for FAILED is 4" , len([run.status for run in task_run if run.status == 'FAILED']) == 4),
+        ]
     except:
         res = [("Wait a few seconds and retry the 'verify' button", False)]
     response.view = 'default/verify.load'
